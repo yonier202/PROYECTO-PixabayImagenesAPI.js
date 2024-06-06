@@ -2,11 +2,15 @@ const resultado = document.querySelector('#resultado');
 
 const formulario = document.querySelector('#formulario');
 
+const paginadorDiv = document.querySelector('#paginacion');
+
 const registrosxPagina = 40;
 
 let totalPaginas;
 
 let iterador;
+
+let paginaActual;
 
 document.addEventListener('DOMContentLoaded', () => {
 
@@ -21,7 +25,7 @@ function validarFormulario(e) {
         mostrarAlerta('Debe ingresar un termino de búsqueda');
         return;
     }
-    buscarImagenes(terminoBusqueda);
+    buscarImagenes();
 }
 
 function mostrarAlerta(mj) {
@@ -44,9 +48,11 @@ function mostrarAlerta(mj) {
     
 }
 
-function buscarImagenes(termino) {
+function buscarImagenes() {
+    const termino = document.querySelector('#termino').value;
+
     const key = "44197226-b56be9c489395806e07834fc8";
-    const url = `https://pixabay.com/api/?key=${key}&q=${termino}`;
+    const url = `https://pixabay.com/api/?key=${key}&q=${termino}&per_page=${registrosxPagina}&page=${paginaActual}`;
     
     fetch(url)
         .then(respuesta => respuesta.json())
@@ -86,6 +92,9 @@ function mostrarImagenes(imagenes) {
     });
 
     iterador = crearPaginador(totalPaginas);
+    while(paginadorDiv.firstChild){
+        paginadorDiv.removeChild(paginadorDiv.firstChild)
+    }
 
     imprimirPaginador()
 }
@@ -93,6 +102,26 @@ function mostrarImagenes(imagenes) {
 //geenador que va a registrar la cantidad de elementos de acuerdo  las paginas
 function imprimirPaginador() {
     iterador = crearPaginador(totalPaginas);
+
+    while (true) {
+        const {value, done} = iterador.next();
+        if (done) {
+            return
+        }
+        // Caso contario, generar un boton cada elemento en el generador 
+        const boton = document.createElement('a');
+        boton.href = '#';
+        boton.textContent = value;
+        boton.classList.add('inline-block', 'px-4', 'py-2', 'rounded-full', 'text-black-500', 'hover:bg-yellow-500', 'hover:text-black', 'font-bold');
+        boton.dataset.pagina = value;
+        boton.onclick = () => {
+            paginaActual = value;
+            buscarImagenes();
+
+        }
+        paginadorDiv.appendChild(boton);
+    }
+
 }
 
 function *crearPaginador(total) {
@@ -104,4 +133,5 @@ function *crearPaginador(total) {
 
 function CalcularPagina(total) {
     return parseInt(Math.ceil(total / registrosxPagina));
+
 }
